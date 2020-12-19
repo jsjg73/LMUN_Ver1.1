@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="memberns">
+
+	
+	<!-- member information save -->
+	<insert id="member_join" parameterType="member">
+		insert into member (email, pwd, nickname,  addr1,addr2,addr3, x_, y_) 
+			values(#{email}, #{pwd}, #{nickname}, #{addr1}, #{addr2, jdbcType=VARCHAR}, #{addr3, jdbcType=VARCHAR}, 
+					#{x_}, #{y_})
+	</insert>
+	
+	<!-- member verification -->
+	<select id="login_check" parameterType="String" resultType="member">
+		select * from member where email=#{value}
+	</select>
+    
+	<!-- member information update -->
+	<update id="member_edit" parameterType="member">
+		update member set pwd=#{pwd},nickname=#{nickname},
+			addr1=#{addr1}, x_=#{x_}, y_=#{y_}
+		where email=#{email}
+	</update>
+	
+	<!-- member deletion -->
+	<delete id="member_delete" parameterType="String">
+		delete from member where email=#{email}
+	</delete>
+	<delete id="member_delete_friend" parameterType="String">
+		delete from friend where inviter=#{email} or invitee=#{email}
+	</delete>
+</mapper>

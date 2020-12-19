@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="friendns">
+		
+	<!-- add friend -->
+	<insert id="insert_fr" parameterType="Map">
+		insert into friend values(#{inviter}, #{invitee})
+	</insert>
+	<!-- add friend -->	
+	<insert id="add_fr_push" parameterType="Map">
+		insert into friendpush values(#{inviter}, #{invitee})
+	</insert>
+	
+	<!-- check friend 20.09.02 친구 관계 확인 -->
+	<select id="check_friend" parameterType="Map" resultType="friend">
+		select * from friend where (inviter=#{inviter} and invitee=#{invitee}) or (inviter=#{invitee} and invitee=#{inviter})
+	</select>
+	<select id="check_friendpush" parameterType="Map" resultType="friendpush">
+		select * from friendpush where (inviter=#{inviter} and invitee=#{invitee}) or (inviter=#{invitee} and invitee=#{inviter})
+	</select>
+	<!-- friend list  20.09.02-->
+	<select id="list" parameterType="String" resultType="friend">
+		select * from friend where inviter = #{email} or invitee = #{email}
+	</select>
+	
+	<!-- delete friend -->
+	<delete id="del_friend" parameterType="Map">
+		delete from friend where (inviter=#{opponent} and invitee=#{my}) or (invitee=#{opponent} and inviter=#{my})
+	</delete>
+	<!-- 20.09.02 -->
+	<select id="invite" parameterType="String" resultType="friendpush">
+		select * from friendpush where inviter=#{email}
+	</select>
+	<!-- 20.09.02 -->
+	<select id="invited" parameterType="String" resultType="friendpush">
+		select * from friendpush where invitee=#{email}
+	</select>
+	<delete id="pushDel" parameterType="friendpush">
+		delete from friendpush where inviter=#{inviter} and invitee=#{invitee}
+	</delete>
+</mapper>

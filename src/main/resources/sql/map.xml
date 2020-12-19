@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+ <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapns">
+	<select id="routeSearch" parameterType="String" resultType="routeM">
+		select * from route_master where id=#{id}
+	</select>
+	<insert id="insertRm" parameterType="routeM">
+		insert into route_master values (#{id},#{num},#{name},#{x},#{y},#{address},#{phone},#{place_url})
+	</insert>
+	<insert id="insertRs" parameterType="routeS">
+	<selectKey keyProperty="rno" resultType="int" order="BEFORE">
+	SELECT route_slave_seq.nextval From DUAL
+	</selectKey>
+		insert into route_slave values (#{rno}, #{id},#{departure},#{bus_route},#{complex_route},#{bus_time, jdbcType=VARCHAR},#{complex_time, jdbcType=VARCHAR})
+	</insert>
+	<select id="routeList" parameterType="routeM" resultType="routeS">
+	select * from route_slave where id=#{id}
+	</select>
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

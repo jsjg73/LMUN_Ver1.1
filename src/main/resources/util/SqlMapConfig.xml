@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+	<typeAliases>
+		<typeAlias alias="member" type="com.mycompany.myapp.model.MemberBean"></typeAlias>		
+		<typeAlias alias="friend" type="com.mycompany.myapp.model.FriendBean"></typeAlias>
+		<typeAlias alias="friendpush" type="com.mycompany.myapp.model.FriendPush"></typeAlias>
+		<typeAlias alias="place" type="com.mycompany.myapp.model.Place"></typeAlias>
+		<typeAlias alias="routeM" type="com.mycompany.myapp.model.RouteM"></typeAlias>
+		<typeAlias alias="routeS" type="com.mycompany.myapp.model.RouteS"></typeAlias>
+	</typeAliases>
+
+
+</configuration>
