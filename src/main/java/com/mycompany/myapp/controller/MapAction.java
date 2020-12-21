@@ -47,6 +47,14 @@ public class MapAction {
 	public JSONObject geoJson(HttpSession session, Place endPlace, Model model) throws InterruptedException, ExecutionException {
 		List<Place> startPlaceList = (List<Place>)session.getAttribute("startPlaceList");
 		
+		/*
+		geoJson을 객체로 만들어서
+		path데이터 혹은 에러 메시지 를 함께 넘겨 주기.
+		int[] status = 1;
+		string[] message ="성공"
+		jsonObject geojson = nms.converGeo....
+		*/
+		
 		// 해결과제 : api 호출이 실패(시간초과  등)했을 때 어떻게 처리할지...
 		// get path data from naver api
 		JSONArray[] pathArr= nms.getPolyPathArr(startPlaceList, endPlace);
@@ -104,7 +112,8 @@ public class MapAction {
 		JSONObject jsonObject = jsonparser.createGeoJson(); //javascript�뿉�꽌 �궗�슜�븷 geojson�삎�깭濡� 蹂��솚
 		JSONArray arr = (JSONArray) jsonObject.get("features");
 		for(JSONArray list : pathArr) {
-			jsonparser.addFeature(arr, list, "red");
+			if(list != null)
+			 jsonparser.addFeature(arr, list, "red");
 		}
 		model.addAttribute("centerPath", jsonObject.toString());
 		

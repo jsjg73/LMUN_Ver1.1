@@ -16,15 +16,14 @@ import java.net.URL;
 
 import org.springframework.stereotype.Service;
 @Service
-public class NaverAPI {
+public class NaverAPI{
 	String URL = "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving";
 	String ID = "butimsrvsd";
 	String KEY = "lLOnI1zEJbNwFdLeTvlvtoSzbEBYS6aTHV0d733c";
-	public String getPath(String start, String goal) {
+	public String getPath(String start, String goal) throws InterruptedException {
 		HttpURLConnection conn = null;
 		StringBuilder sb = null;
 		try {
-			
 			String final_request_url = new StringBuffer()
 					.append(URL).append("?")
 					.append("start=").append(start).append("&")
@@ -44,11 +43,14 @@ public class NaverAPI {
 			// 통신 상태 확인 코드.
 			int responseCode = conn.getResponseCode();
 			if (responseCode == 400) {
-				System.out.println("kakao connection :: 400 error");
+				System.out.println("naver api connection :: 400 error");
+				throw new InterruptedException("naver api connection :: 400 error");
 			} else if (responseCode == 401) {
 				System.out.println("401:: Wrong X-Auth-Token Header");
+				throw new InterruptedException("401:: Wrong X-Auth-Token Header");
 			} else if (responseCode == 500) {
 				System.out.println("500::server error");
+				throw new InterruptedException("500::server error");
 			} else { // 성공 후 응답 JSON 데이터받기
 				sb = new StringBuilder();
 				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));

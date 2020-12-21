@@ -34,7 +34,10 @@ public class NaverMapServiceImpl implements MapService {
 		
 		//stringArr to jsonArr
 		for(int i=0; i<arr.length; i++) {
-			arr[i]= par.polyPathParsing(apiReqData[i], endPlace);
+			if(apiReqData[i]!=null) {
+				// 
+				arr[i]= par.polyPathParsing(apiReqData[i], endPlace);
+			}
 		}
 		
 		return arr;
@@ -50,32 +53,37 @@ public class NaverMapServiceImpl implements MapService {
 				.append(endPlace.getY())
 				.toString();
 		
-		int idx=0;
 		
 		// thread for each destinations
 		ExecutorService executor = Executors.newFixedThreadPool(5);
 		List<Future<String>> futures = new ArrayList<Future<String>>();
-		for( Place p : startPlaceList) {
+		for(int i=0; i<startPlaceList.size(); i++) {
+			Place p = startPlaceList.get(i);
 			String start = new StringBuilder().append(p.getX())
 					.append(",").append(p.getY()).toString();
-			
+			final int idx =i;
 			futures.add(executor.submit(()->{
 				// request NaverAPI data
-				return N_api.getPath(start, goal);
+				String re = null;
+				try {
+					re = N_api.getPath(start, goal);
+				} catch (InterruptedException e) {
+					// naver api request has some error
+				}
+				return re;
 			}));
 		}
 		
 		executor.shutdown();
-		boolean allThreadDone = executor.awaitTermination(3000,TimeUnit.MILLISECONDS);
+		executor.awaitTermination(3000,TimeUnit.MILLISECONDS); // 3 sec is allowed
 		
 		//insert thread result. 
 		for(int i=0; i<futures.size(); i++) {
-			//예외처리 필요
-			if(!allThreadDone && futures.get(i).isDone()) {
-				// 어떻게 처리할지?
-				// 시간초과로 데이터 못 불러옴
+			if(futures.get(i).cancel(true)) { // naver api request takes more 3 sec
+				//naver api timeout( 3 sec )
 			}else {
-				list[i]=futures.get(i).get();
+				if(futures.get(i)!=null)
+					list[i]=futures.get(i).get();
 			}
 		}
 		return list;
@@ -91,6 +99,7 @@ public class NaverMapServiceImpl implements MapService {
 		double goaly = Double.parseDouble(endPlace.getY());
 		
 		for(JSONArray pathArray : arr) {
+			if(pathArray==null)continue;
 			double now =100;
 			int idx =pathArray.size();
 			for(int i=pathArray.size()/2; i<pathArray.size(); i++) {
@@ -124,6 +133,7 @@ public class NaverMapServiceImpl implements MapService {
 		JSONObject jsonObject = par.createGeoJson();
 		JSONArray arr = (JSONArray) jsonObject.get("features");
 		for(JSONArray path : pathArr) {
+			if(path!=null)
 			par.addFeature(arr, path);
 		}
 		return jsonObject;

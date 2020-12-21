@@ -239,22 +239,6 @@ h1, h2, h3, h4, h5, h6 {
 		nowGeojson = geojson;
 		map.data.addGeoJson(geojson);// 새 레이어 올리기
 	}
-	
-      /* var times = new Array();
-      //각 도착지에 대한 친구들의 정보 종합.
-      for(var i=0; i<pathToEpl.length; i++){
-         var str = "";
-         var path = pathToEpl[i];
-         
-         for(var j=0; j<path.length; j++){
-            if(path[j].complex_time=="NONE"){
-               str += '<p>출발지 '+(j+1)+'번 : 이용할 수 있는 대중 교통이 없습니다.';
-            }else{            	
-               str += '<p>출발지'+(j+1)+'번 예상 이동시간(대중교통)  : '+path[j].complex_time+'분</p>';   
-            }            
-         }
-         times.push(str);
-      } */
       
       
       //append.
