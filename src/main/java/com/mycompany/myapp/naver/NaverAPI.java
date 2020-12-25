@@ -15,14 +15,22 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.springframework.stereotype.Service;
+
+import com.mycompany.myapp.model.DrawingPath;
+import com.mycompany.myapp.model.NPath;
 @Service
 public class NaverAPI{
 	String URL = "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving";
 	String ID = "butimsrvsd";
 	String KEY = "lLOnI1zEJbNwFdLeTvlvtoSzbEBYS6aTHV0d733c";
-	public String getPath(String start, String goal) throws InterruptedException {
+	
+	public void getPath(NPath path) {
 		HttpURLConnection conn = null;
 		StringBuilder sb = null;
+		
+		String start = concatcomma(path.getSx(), path.getSy());
+		String goal = concatcomma(path.getEx(), path.getEy());
+		
 		try {
 			String final_request_url = new StringBuffer()
 					.append(URL).append("?")
@@ -31,42 +39,54 @@ public class NaverAPI{
 					.append("&option=traavoidcaronly")
 					.toString();
 			URL url = new URL(final_request_url);
-
+			
 			conn = (HttpURLConnection) url.openConnection();
 			// Request 형식 설정
 			conn.setRequestMethod("GET");
 			// 키 입력
 			conn.setRequestProperty("X-NCP-APIGW-API-KEY-ID", ID);
 			conn.setRequestProperty("X-NCP-APIGW-API-KEY", KEY);
-
+			
 			// 보내고 결과값 받기
 			// 통신 상태 확인 코드.
 			int responseCode = conn.getResponseCode();
 			if (responseCode == 400) {
-				System.out.println("naver api connection :: 400 error");
-				throw new InterruptedException("naver api connection :: 400 error");
+				path.setStCode(400);
+				path.setStMsg("naver api connection :: 400 error");
 			} else if (responseCode == 401) {
-				System.out.println("401:: Wrong X-Auth-Token Header");
-				throw new InterruptedException("401:: Wrong X-Auth-Token Header");
+				path.setStCode(401);
+				path.setStMsg("401:: Wrong X-Auth-Token Header");
 			} else if (responseCode == 500) {
-				System.out.println("500::server error");
-				throw new InterruptedException("500::server error");
+				path.setStCode(500);
+				path.setStMsg("500::server error");
 			} else { // 성공 후 응답 JSON 데이터받기
+				path.setStCode(200);
+				path.setStMsg("OK");
 				sb = new StringBuilder();
+				
 				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-
+				
 				String line = "";
 				while ((line = br.readLine()) != null) {
 					sb.append(line);
 				}
 				br.close();
+				path.setRawPath(sb.toString());
 			}
-
+			
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return sb.toString();
+	}
+	
+	public String concatcomma(String x, String y) {
+		String str = new StringBuilder()
+				.append(x)
+				.append(",")
+				.append(y)
+				.toString();
+		return str;
 	}
 }

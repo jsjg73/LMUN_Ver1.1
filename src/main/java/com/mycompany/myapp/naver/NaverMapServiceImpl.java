@@ -9,11 +9,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.mycompany.myapp.model.Place;
+import com.mycompany.myapp.model.NPath;
 import com.mycompany.myapp.service.Distance;
 import com.mycompany.myapp.service.MapService;
 
@@ -24,53 +23,16 @@ public class NaverMapServiceImpl implements MapService {
 	@Autowired
 	private NaverJsonParsing par;
 	
-	public JSONArray[] getPolyPathArr(List<Place> startPlaceList, Place endPlace) throws InterruptedException, ExecutionException {
-		
-		//array for path data, to the each destination
-		JSONArray[] arr = new JSONArray[startPlaceList.size()];
-		
-		//connect naver api and request data
-		String[] apiReqData = requestNaverAPI(startPlaceList, endPlace);
-		
-		//stringArr to jsonArr
-		for(int i=0; i<arr.length; i++) {
-			if(apiReqData[i]!=null) {
-				// 
-				arr[i]= par.polyPathParsing(apiReqData[i], endPlace);
-			}
-		}
-		
-		return arr;
-	}
-	
-	//
-	public String[] requestNaverAPI(List<Place> startPlaceList, Place endPlace) throws InterruptedException, ExecutionException {
-		String[] list = new String[startPlaceList.size()];
-		
-		String goal = new StringBuilder()
-				.append(endPlace.getX())
-				.append(",")
-				.append(endPlace.getY())
-				.toString();
-		
+	public void requestNaverAPI(List<NPath> pathList) throws InterruptedException, ExecutionException {
 		
 		// thread for each destinations
 		ExecutorService executor = Executors.newFixedThreadPool(5);
-		List<Future<String>> futures = new ArrayList<Future<String>>();
-		for(int i=0; i<startPlaceList.size(); i++) {
-			Place p = startPlaceList.get(i);
-			String start = new StringBuilder().append(p.getX())
-					.append(",").append(p.getY()).toString();
-			final int idx =i;
+		List<Future> futures = new ArrayList<Future>();
+		for(int i=0; i<pathList.size(); i++) {
+			final int idx = i;
 			futures.add(executor.submit(()->{
 				// request NaverAPI data
-				String re = null;
-				try {
-					re = N_api.getPath(start, goal);
-				} catch (InterruptedException e) {
-					// naver api request has some error
-				}
-				return re;
+				N_api.getPath(pathList.get(idx));
 			}));
 		}
 		
@@ -81,24 +43,28 @@ public class NaverMapServiceImpl implements MapService {
 		for(int i=0; i<futures.size(); i++) {
 			if(futures.get(i).cancel(true)) { // naver api request takes more 3 sec
 				//naver api timeout( 3 sec )
-			}else {
-				if(futures.get(i)!=null)
-					list[i]=futures.get(i).get();
+				pathList.get(i).setStCode(999);
+				pathList.get(i).setStMsg("timeout");
 			}
 		}
-		return list;
 	}
 	
+	public void strToJSONArray(List<NPath> pathList) {
+		for(NPath o : pathList) {
+			par.polyPathParsing(o);
+		}
+	}
 	
 	@Autowired
 	private Distance distance;
 	//remove garbage data ( near the destinations )
-	public void removeGarbagePath(JSONArray[] arr, Place endPlace) {
+	public void removeGarbagePath(List<NPath> pathList) {
 		
-		double goalx = Double.parseDouble(endPlace.getX());
-		double goaly = Double.parseDouble(endPlace.getY());
+		double goalx = Double.parseDouble(pathList.get(0).getEx());
+		double goaly = Double.parseDouble(pathList.get(0).getEy());
 		
-		for(JSONArray pathArray : arr) {
+		for(NPath o : pathList) {
+			JSONArray pathArray = o.getPath();
 			if(pathArray==null)continue;
 			double now =100;
 			int idx =pathArray.size();
@@ -125,17 +91,9 @@ public class NaverMapServiceImpl implements MapService {
 			while(pathArray.size()>idx) {
 				pathArray.remove(idx);
 			}
+			o.setPath(pathArray);
 		}
 		
 	}
 	
-	public JSONObject convertGeoJson(JSONArray[] pathArr) {
-		JSONObject jsonObject = par.createGeoJson();
-		JSONArray arr = (JSONArray) jsonObject.get("features");
-		for(JSONArray path : pathArr) {
-			if(path!=null)
-			par.addFeature(arr, path);
-		}
-		return jsonObject;
-	}
 }

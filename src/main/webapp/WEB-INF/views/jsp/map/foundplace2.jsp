@@ -133,6 +133,10 @@ h1, h2, h3, h4, h5, h6 {
 	
 	var epl = ${jsonEpl};//endplacelist
    	var spl = ${jsonSpl};//startplacelist
+   	var visit =[];
+   	for(var i=0; i<epl.length; i++){
+   		visit[i]=false;
+   	}
    	/* var pathToEpl = ${path}; */
    	
 	var map = new naver.maps.Map('map', {
@@ -158,48 +162,59 @@ h1, h2, h3, h4, h5, h6 {
 				scaledSize: new naver.maps.Size(23, 35)
 			}
 	});
-	var centerPath = ${centerPath};
-	var nowGeojson =centerPath; // 기존 레이어 저장  -> 이후에 삭제할때 필요함.
-	map.data.addGeoJson(centerPath);
+	//var centerPath = ${centerPath};
+	var nowGeojson ; // 기존 레이어 저장  -> 이후에 삭제할때 필요함.
+	//map.data.addGeoJson(centerPath);
 
 	var arrGeojson = []; // 경로 그려줄 geoJson 데이터 배열 // ajax 통해  서버로부터 받아옴.
 	
 	
 	<!-- 경로 polyline 그려줄  경로 배열 ajax 호출-->
 	<!-- naver driving api-->
+	
 	function tab_click(k){
 		//현재 함수 실행 될때 발생되는 이벤트 리스트 적어놓기.
 		var headd = '';
 		var bodyy ='';
 		
 		//이미 호출한적 있는지 확인.
-  	  var hasData = $('#menu'+k+'_head').html()=="";
-  	  alert(hasData);
-  	  if(hasData){
+  	  if(visit[k]==false){
+  		  
+  		var path =[];
+  		for(var i=0; i<spl.length; i++){
+  			var jobj = new Object();
+  			jobj.sx = spl[i].x;
+  			jobj.sy = spl[i].y;
+  			jobj.ex = epl[k].x;
+  			jobj.ey = epl[k].y;
+  			path.push(jobj);
+  		}
 		 $.ajax({
-			    url:"geoJson.do",
-			    data :{
-			    	"x":epl[k].x,
-			    	"y":epl[k].y
-			    },
-			    dataType:'json', 
-			    success: function(data){
-			    	//경로 그릴 좌표 배열 데이터 : data
-			    	test(data, k);
-			    	
-			    	arrGeojson[k]=data;
-			    	
-			    	headd ='<h1>'+epl[k].name+'</h1>';
-			    	document.getElementById('menu'+k+'_head').innerHTML = headd;
-			    	//console.log(headd);
-			        var posi = new naver.maps.LatLng(epl[k].y, epl[k].x);
-			        map.setCenter(posi);
-			        destination_marker.setPosition(posi);
-			    },
-				error:function(e){
-				  alert("data error"+e);
-				}
-			}); 
+			url:"drawingPath.do",
+		    type:"post",
+		    data :JSON.stringify(
+		    		path
+		    	),
+		    contentType: "application/json",
+		    dataType:'json', 
+		    success: function(data){
+		    	console.log(data)
+		    	
+		    	//경로 그릴 좌표 배열 데이터 : data
+		    	test(data, k);
+		    			    	
+		    	headd ='<h1>'+epl[k].name+'</h1>';
+		    	document.getElementById('menu'+k+'_head').innerHTML = headd;
+		    	//console.log(headd);
+		        var posi = new naver.maps.LatLng(epl[k].y, epl[k].x);
+		        map.setCenter(posi);
+		        destination_marker.setPosition(posi);
+		    },
+			error:function(e){
+			  alert("data error"+e);
+			}
+		});
+		 
 		 $.ajax({
 			    url:"publicDataService.do",
 			    data :{
@@ -232,9 +247,48 @@ h1, h2, h3, h4, h5, h6 {
 	}
 	
 	
-	function test(geojson, k){
+	function createGeoJson(data){
+		var geoJson ={
+				"type": "FeatureCollection",
+				"features": []
+			};
+		//for문
+		for(var i=0; i<data.length; i++){
+			if(data[i].stCode == 200){
+	    		//geoJson 형식 맞추기
+	    		var geometry = new Object();
+		    	geometry.type ="LineString";
+		    	geometry.coordinates = data[i].path;
+		    	
+		    	var element = new Object();
+		    	element.type = "Feature";
+		    	element.geometry = geometry;
+		    	
+		    	geoJson.features.push(element);
+		    	//-----------------------------
+		    	
+	    	}else{
+	    		alert(i+"번째 친구 에러 : "+ data[i].stMsg);
+	    		//경로 태그에 stMsg 삽입
+	    	}
+		}
+		console.log(geoJson);
+		
+    	return geoJson;
+	}
+	
+	// update layout or load layout;
+	function test(data, k){
+		var geojson;
 		if(nowGeojson != null){
 			map.data.removeGeoJson(nowGeojson);//기존 레이어 삭제
+		}
+		if(visit[k]==false){
+			geojson = createGeoJson(data);
+			arrGeojson[k] = geojson;
+			visit[k]=true;
+		}else{
+			geojson = data;
 		}
 		nowGeojson = geojson;
 		map.data.addGeoJson(geojson);// 새 레이어 올리기

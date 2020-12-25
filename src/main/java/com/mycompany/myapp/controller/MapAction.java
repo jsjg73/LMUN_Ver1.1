@@ -7,20 +7,24 @@ import java.util.concurrent.ExecutionException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mycompany.myapp.exception.UnCorrectResponseCodeNaverApi;
 import com.mycompany.myapp.json.JsonParsing;
+import com.mycompany.myapp.model.DrawingPath;
+import com.mycompany.myapp.model.NPath;
 import com.mycompany.myapp.model.Place;
 import com.mycompany.myapp.model.RouteM;
 import com.mycompany.myapp.model.RouteS;
+import com.mycompany.myapp.naver.NaverAPI;
+import com.mycompany.myapp.naver.NaverJsonParsing;
 import com.mycompany.myapp.naver.NaverMapServiceImpl;
 import com.mycompany.myapp.service.MapServiceImpl;
 
@@ -36,33 +40,32 @@ public class MapAction {
 	private NaverMapServiceImpl nms;
 	@Autowired
 	private JsonParsing jsonparser;
+	@Autowired
+	private NaverJsonParsing par;
+	@Autowired
+	private NaverAPI nApi;
+	
 	@RequestMapping("test.do")
 	public String home_push(HttpSession session, HttpServletRequest request) {
+//		return "map/home";
 		return "map/home";
 	}
-	
-	//ajax�샇異�
-	@RequestMapping("geoJson.do")
+
+	@RequestMapping("drawingPath.do")
 	@ResponseBody
-	public JSONObject geoJson(HttpSession session, Place endPlace, Model model) throws InterruptedException, ExecutionException {
-		List<Place> startPlaceList = (List<Place>)session.getAttribute("startPlaceList");
-		
-		/*
-		geoJson을 객체로 만들어서
-		path데이터 혹은 에러 메시지 를 함께 넘겨 주기.
-		int[] status = 1;
-		string[] message ="성공"
-		jsonObject geojson = nms.converGeo....
-		*/
-		
-		// 해결과제 : api 호출이 실패(시간초과  등)했을 때 어떻게 처리할지...
+	public List<NPath> getPath(@RequestBody List<NPath> pathList, Model mode) throws InterruptedException, UnCorrectResponseCodeNaverApi, ExecutionException {
+
 		// get path data from naver api
-		JSONArray[] pathArr= nms.getPolyPathArr(startPlaceList, endPlace);
-		// remove garbage data ( near the destinations )
-		nms.removeGarbagePath(pathArr, endPlace);
+		nms.requestNaverAPI(pathList);
+//		nms.getPolyPathArr(path);
 		
-		// convert to geoJson form ( front javascript wants geoJson form data )
-		return nms.convertGeoJson(pathArr);
+		//stringArr to jsonArr
+		nms.strToJSONArray(pathList);
+		
+		// remove garbage data ( near the destinations )
+		nms.removeGarbagePath(pathList);
+		
+		return pathList;
 	}
 	
 	@RequestMapping("publicDataService.do")
@@ -107,6 +110,7 @@ public class MapAction {
 		//---------------------------------以묒젏 醫뚰몴 get--------------------------------
 		Place center = mapServices.getCenter(startPlaceList);		
 		
+		/*
 		// geoJson �깮�꽦 // 寃쎈줈 洹몃━湲�
 		JSONArray[] pathArr= nms.getPolyPathArr(startPlaceList, center); //異쒕컻吏��뱾�뿉�꽌 以묒떖 醫뚰몴源뚯� polyline�쓣 洹몃━湲� �쐞�븳 寃쎈줈諛곗뿴 �뜲�씠�꽣 �슂泥� 諛� �꽭�똿
 		JSONObject jsonObject = jsonparser.createGeoJson(); //javascript�뿉�꽌 �궗�슜�븷 geojson�삎�깭濡� 蹂��솚
@@ -116,7 +120,7 @@ public class MapAction {
 			 jsonparser.addFeature(arr, list, "red");
 		}
 		model.addAttribute("centerPath", jsonObject.toString());
-		
+		*/
 		
 		//--------------------------------媛�源뚯슫 吏��븯泥좎뿭 5媛� get-------------------------------
 		// category_group_code:SW8(吏��븯泥�), page:1, size:15(湲곕낯媛�), radius:2000 �쑝濡� �젣�븳�븯�뿬 �슂泥�
