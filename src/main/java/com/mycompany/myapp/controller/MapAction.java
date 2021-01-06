@@ -45,9 +45,9 @@ public class MapAction {
 	@Autowired
 	private NaverAPI nApi;
 	
-	@RequestMapping("test.do")
+	@RequestMapping("main.do")
 	public String home_push(HttpSession session, HttpServletRequest request) {
-//		return "map/home";
+		//open home.jsp
 		return "map/home";
 	}
 
@@ -107,27 +107,15 @@ public class MapAction {
 		HttpSession session = request.getSession();
 		session.setAttribute("startPlaceList", startPlaceList);		
 		
-		//---------------------------------以묒젏 醫뚰몴 get--------------------------------
-		Place center = mapServices.getCenter(startPlaceList);		
-		
-		/*
-		// geoJson �깮�꽦 // 寃쎈줈 洹몃━湲�
-		JSONArray[] pathArr= nms.getPolyPathArr(startPlaceList, center); //異쒕컻吏��뱾�뿉�꽌 以묒떖 醫뚰몴源뚯� polyline�쓣 洹몃━湲� �쐞�븳 寃쎈줈諛곗뿴 �뜲�씠�꽣 �슂泥� 諛� �꽭�똿
-		JSONObject jsonObject = jsonparser.createGeoJson(); //javascript�뿉�꽌 �궗�슜�븷 geojson�삎�깭濡� 蹂��솚
-		JSONArray arr = (JSONArray) jsonObject.get("features");
-		for(JSONArray list : pathArr) {
-			if(list != null)
-			 jsonparser.addFeature(arr, list, "red");
-		}
-		model.addAttribute("centerPath", jsonObject.toString());
-		*/
+		//---------------------------------출발지 좌표의 산술 평균get--------------------------------
+		Place center = mapServices.getCenter(startPlaceList);
 		
 		//--------------------------------媛�源뚯슫 吏��븯泥좎뿭 5媛� get-------------------------------
-		// category_group_code:SW8(吏��븯泥�), page:1, size:15(湲곕낯媛�), radius:2000 �쑝濡� �젣�븳�븯�뿬 �슂泥�
+		// category_group_code:SW8(subway), page:1, size:15(湲곕낯媛�), radius:2000 �쑝濡� �젣�븳�븯�뿬 �슂泥�
 		String option = "x/" + center.getX() + "/y/" + center.getY() + "/page/1/radius/2000";
-		List<Place> endplaceList = mapServices.categorySearch("SW8", option);
+		List<Place> endplaceList = mapServices.getPlaceList("SW8", option);
 		
-		endplaceList.add(0,	center);//以묒떖 醫뚰몴 異붽�.	
+		endplaceList.add(0,	center);	
 		
 		// js�뿉�꽌 �궗�슜�븯湲� �렪�븯寃�  json�삎�떇�쑝濡� 蹂��솚.
 		model.addAttribute("jsonEpl", jsonparser.josonParsing(endplaceList));// 異붿쿇吏��뿭 json 蹂��솚 08.29
@@ -151,19 +139,19 @@ public class MapAction {
 		for(Place p : startPlaceList)
 			sb.append(p.getAddress());
 		// CT1 臾명솕�떆�꽕
-		List<Place> ct1placeList = mapServices.categorySearch("CT1", option);
+		List<Place> ct1placeList = mapServices.getPlaceList("CT1", option);
 		mapServices.createId(ct1placeList, sb.toString());//媛� �룄李⑹��뿉 ���빐 id遺��뿬
 		model.addAttribute("ct1placeList", ct1placeList);
 		// FD6 �쓬�떇�젏
-		List<Place> fd6placeList = mapServices.categorySearch("FD6", option);
+		List<Place> fd6placeList = mapServices.getPlaceList("FD6", option);
 		mapServices.createId(fd6placeList, sb.toString());//媛� �룄李⑹��뿉 ���빐 id遺��뿬
 		model.addAttribute("fd6placeList", fd6placeList);
 		// CE7 移댄럹
-		List<Place> ce7placeList = mapServices.categorySearch("CE7", option);
+		List<Place> ce7placeList = mapServices.getPlaceList("CE7", option);
 		mapServices.createId(ce7placeList, sb.toString());//媛� �룄李⑹��뿉 ���빐 id遺��뿬
 		model.addAttribute("ce7placeList", ce7placeList);
 		// AT4 愿�愿묐챸�냼
-		List<Place> at4placeList = mapServices.categorySearch("AT4", option);
+		List<Place> at4placeList = mapServices.getPlaceList("AT4", option);
 		mapServices.createId(at4placeList, sb.toString());//媛� �룄李⑹��뿉 ���빐 id遺��뿬
 		model.addAttribute("at4placeList", at4placeList);
 		//------------------------------------------------------------

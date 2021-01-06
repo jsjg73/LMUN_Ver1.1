@@ -29,6 +29,7 @@ import com.mycompany.myapp.model.Place;
 import com.mycompany.myapp.model.RouteM;
 import com.mycompany.myapp.model.RouteS;
 import com.mycompany.myapp.naver.NaverAPI;
+import com.mycompany.myapp.service.kakao.KakaoMapServiceImpl;
 
 @Service
 public class MapServiceImpl implements MapService {
@@ -41,119 +42,16 @@ public class MapServiceImpl implements MapService {
 	private PublicDataService pds;
 	@Autowired
 	private NaverAPI driving;
+	@Autowired
+	private KakaoMapServiceImpl kms;
 
-	private final String URL_HOME = "https://dapi.kakao.com";
-	private final String URL_CATEGORY = "/v2/local/search/category.json";
-	private final String URL_KEYWORD = "/v2/local/search/keyword.json";
-	private final String URL_ADRESS = "/v2/local/search/address.json";
 
-	public List<Place> categorySearch(String categoryCode) {
-		String url = URL_HOME + URL_CATEGORY + "?";
-		String options = "category_group_code/" + categoryCode;
-		return getStationCoord(url, options);
+	public List<Place> getPlaceList(String categoryCode, String option) {
+		return kms.getPlaceList(categoryCode, option);
 	}
 
-	public List<Place> categorySearch(String categoryCode, String option) {
-		String url = URL_HOME + URL_CATEGORY + "?";
-		String options = "category_group_code/" + categoryCode + "/" + option;
-		return getStationCoord(url, options);
-	}
-
-	public List<Place> keywordSearch(String query) {
-		String url = URL_HOME + URL_KEYWORD + "?";
-		String options = null;
-		try {
-			options = "query/" + URLEncoder.encode(query, "utf-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return getStationCoord(url, options);
-	}
-
-	public List<Place> keywordSearch(String query, String option) {
-		String url = URL_HOME + URL_KEYWORD + "?";
-		String options = null;
-		try {
-			options = "query/" + URLEncoder.encode(query, "utf-8") + "/" + option;
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return getStationCoord(url, options);
-	}
-
-	public List<Place> addressSearch(String address) {
-		String url = URL_HOME + URL_ADRESS + "?";
-		String options = null;
-		try {
-			options = "query/" + URLEncoder.encode(address, "utf-8");
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return getStationCoord(url, options);
-	}
-
-	public List<Place> addressSearch(String address, String option) {
-		String url = URL_HOME + URL_ADRESS + "?";
-		String options = null;
-		try {
-			options = "query/" + URLEncoder.encode(address, "utf-8") + "/" + option;
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return getStationCoord(url, options);
-	}
-
-	// REST API에 요청해서 json 형식 데이터 받아올 부분
-	public List<Place> getStationCoord(String url_, String options) {
-		HttpURLConnection conn = null;
-		StringBuilder sb = null;
-		try {
-			sb = new StringBuilder();
-			sb.append(url_);
-			StringTokenizer st = new StringTokenizer(options, "/");
-			String Authorization = "KakaoAK " + "cdca325d6efe88cfb6c48440908a80c2";
-			while (st.hasMoreTokens()) {
-				sb.append(st.nextToken()).append("=").append(st.nextToken()).append("&");
-			}
-
-			// 주소 확인용 디버깅 코드
-			String final_request_url = sb.toString();
-			URL url = new URL(final_request_url);
-
-			conn = (HttpURLConnection) url.openConnection();
-			// Request 형식 설정
-			conn.setRequestMethod("GET");
-			// 키 입력
-			conn.setRequestProperty("Authorization", Authorization);
-
-			// 보내고 결과값 받기
-			// 통신 상태 확인 코드.
-			int responseCode = conn.getResponseCode();
-			if (responseCode == 400) {
-				System.out.println("kakao connection :: 400 error");
-			} else if (responseCode == 401) {
-				System.out.println("401:: Wrong X-Auth-Token Header");
-			} else if (responseCode == 500) {
-				System.out.println("500:: kakao server error");
-			} else { // 성공 후 응답 JSON 데이터받기
-				sb = new StringBuilder();
-				BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-
-				String line = "";
-				while ((line = br.readLine()) != null) {
-					sb.append(line);
-				}
-				br.close();
-			}
-
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		par = new JsonParsing();
-		return par.getPlaceInfo(sb.toString());
-	}
+	
+	
 
 	// 중심 좌표 구하기.
 	// 출발지 좌표 값의 평균.
