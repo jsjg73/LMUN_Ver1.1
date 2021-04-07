@@ -14,16 +14,21 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.mycompany.myapp.model.DrawingPath;
 import com.mycompany.myapp.model.NPath;
 @Service
 public class NaverAPI{
-	String URL = "https://naveropenapi.apigw.ntruss.com/map-direction/v1/driving";
-	String ID = "butimsrvsd";
-	String KEY = "lLOnI1zEJbNwFdLeTvlvtoSzbEBYS6aTHV0d733c";
 	
+	@Value("${naver.url}")
+	private String URL ;
+	@Value("${naver.id}")
+	private String ID ;
+	@Value("${naver.accessKey}")
+	private String KEY = "lLOnI1zEJbNwFdLeTvlvtoSzbEBYS6aTHV0d733c";
+
 	public void getPath(NPath path) {
 		HttpURLConnection conn = null;
 		StringBuilder sb = null;

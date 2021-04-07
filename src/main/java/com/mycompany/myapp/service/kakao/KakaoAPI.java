@@ -11,7 +11,10 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.mycompany.myapp.json.JsonParsing;
@@ -22,12 +25,15 @@ public class KakaoAPI {
 	@Autowired
 	private JsonParsing par;
 	
+	@Value("${kakao.accessKey}")
+	private String accessKey;
+	
 	// REST API에 요청해서 json 형식 데이터 받아올 부분
 		public String getStationCoord(URL url) {
 			HttpURLConnection conn = null;
 			StringBuilder sb = null;
 			try {
-				String Authorization = "KakaoAK " + "cdca325d6efe88cfb6c48440908a80c2";
+				String Authorization = "KakaoAK " + accessKey;
 
 				conn = (HttpURLConnection) url.openConnection();
 				// Request 형식 설정
