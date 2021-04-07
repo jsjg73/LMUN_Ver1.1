@@ -27,7 +27,7 @@ public class NaverAPI{
 	@Value("${naver.id}")
 	private String ID ;
 	@Value("${naver.accessKey}")
-	private String KEY = "lLOnI1zEJbNwFdLeTvlvtoSzbEBYS6aTHV0d733c";
+	private String KEY;
 
 	public void getPath(NPath path) {
 		HttpURLConnection conn = null;
