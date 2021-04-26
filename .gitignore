@@ -1,4 +1,4 @@
 *.class
 *.jar
 *.properties
-*/pom.xml
+pom.xml
